@@ -20,10 +20,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from os import path, makedirs, SEEK_SET
 from itertools import islice, chain
+from functools import partial
 from sys import argv, exit
 from contextlib import ExitStack
+from signal import signal, SIGINT
+from shutil import rmtree
 import math
 import time
+
+# Handler para el KeyboardInterrupt
+def signal_handler(files, signal, frame):
+    # Cerramos los archivos, de lo contrario no podremos eliminarlos
+    for f in files: f.close()
+    # Eliminamos los directorios enteros (con sus archivos)
+    rmtree('salida_geoide_pm_{}'.format(paso_malla_salida))
+    rmtree('salida_topo_pm_{}'.format(paso_malla_salida))
+    # Salimos sin código de error
+    exit(0)
 
 # Códigos ANSI para los colores de la terminal
 bcolors = {
@@ -325,6 +338,10 @@ if __name__ == '__main__':
         # Abrimos o Creamos los archivos de escritura
         files_geoide = [ stack.enter_context(open(fname, 'wt')) for fname in filenames_geoide ]
         files_topo = [ stack.enter_context(open(fname, 'wt')) for fname in filenames_topo ]
+
+        # Señal que se dispara cuando ocurre un KeyBoardInterrupt
+        files = list(files_geoide) + list(files_topo)
+        signal(SIGINT, partial(signal_handler, files))
 
         # Tiempo
         t = time.process_time()
