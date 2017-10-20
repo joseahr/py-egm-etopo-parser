@@ -108,7 +108,8 @@ def simplifyEGM08(file):
 
     # Bucle: Tenemos que repetir el bucle 181 veces
     # hasta llegar al final del archivo
-    for _ in range(0, 181):
+    final = math.floor(180 * (60 / paso_malla_salida)) + 1
+    for _ in range(0,  final):
 
         # Cogemos desde la linea "actual" hasta "actual + salto_lat_1", cada "salto"
         parsed_line = list(map(parse_line, islice(file, 0, salto_lat - 1, salto)))
