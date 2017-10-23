@@ -153,6 +153,8 @@ def geo2car(lon, lat, h, factor_exageracion = 1):
     # Semieje menor
     b  = a - (a*f)
 
+
+    #print(a, b, b/a)
     # excentricidad lineal
     el = math.sqrt((a**2) - (b**2))
     # primera excentricidad
@@ -222,6 +224,26 @@ def get_paso_malla_etopo(file):
 
         # Devolvemos el paso de malla calculado
         return 60 / ((num_elements - 1 ) / 360)
+
+def append_faces(files):
+    n = int(60 / paso_malla_salida)
+    # Meridianos
+    segments = 360 * n
+    # Paralelos
+    rings   = 180 * n
+    print(n, segments, rings)
+    for ring in range(1, rings):
+        for segment in range(segments):
+            s = segments + 1
+            ss = segment + 1
+            face = [(ring - 1) * s + ss,
+                        (ring - 1) * s + ss + 1,
+                        (ring) * s + ss + 1,
+                        (ring) * s + ss]
+                        
+            face_str = 'f {}\n'.format(' '.join(map(str, face)))
+            
+            for file in files: file.write(face_str)
 
 if __name__ == '__main__':
 
@@ -370,7 +392,8 @@ if __name__ == '__main__':
                 # y el geoide respectivamente para el factor de exageración actual
                 file_geoide.write( xyz2vertex( *geo2car(lon, lat, ond, fe) ) )
                 file_topo.write( xyz2vertex( *geo2car( lon, lat, helip, fe) ) )
-
+        # Calcular faces
+        append_faces(files)
         # Tiempo que ha tardado
         elapsed = time.process_time() - t
         print_message('Ha tardado {}s'.format(elapsed), 'OKGREEN')
